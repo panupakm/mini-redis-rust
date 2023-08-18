@@ -4,4 +4,5 @@ members = [
     "app/server",
     "app/client",
     "app/integration_tests",
+    "app/payload",
 ]

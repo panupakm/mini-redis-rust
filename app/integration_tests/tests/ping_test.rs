@@ -18,9 +18,9 @@ fn test_connect_to_server() {
 
     let mut redis_client = Client::new();
     assert!(redis_client.connect(ADDRESS, PORT).is_ok());
-    match redis_client.ping() {
+    match redis_client.ping("hello") {
         Ok(msg) => {
-            println!("asdf {}", msg);
+            assert_eq!("hello", msg);
         }
         Err(e) => assert!(false, "{:?}", e),
     }
