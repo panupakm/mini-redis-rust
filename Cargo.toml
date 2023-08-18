@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+    "app/server",
+    "app/client",
+    "app/integration_tests",
+]
