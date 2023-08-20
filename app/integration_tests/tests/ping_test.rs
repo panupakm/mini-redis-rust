@@ -1,6 +1,6 @@
 use client::client::Client;
 use server::server::Server;
-use std::thread::{self};
+use std::thread;
 use std::time::Duration;
 use pretty_assertions::assert_eq;
 
@@ -18,9 +18,9 @@ fn test_connect_to_server() {
 
     let mut redis_client = Client::new();
     assert!(redis_client.connect(ADDRESS, PORT).is_ok());
-    match redis_client.ping("hello") {
+    match redis_client.ping("hello1111") {
         Ok(msg) => {
-            assert_eq!("hello", msg);
+            assert_eq!("hello1111", msg);
         }
         Err(e) => assert!(false, "{:?}", e),
     }

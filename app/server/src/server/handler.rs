@@ -1,33 +1,40 @@
-use std::io::{self, Write};
-use std::net::TcpStream;
+mod set;
+pub use set::handle_set;
+
+mod ping;
+pub use ping::handle_ping;
+
+use mockall::*;
+use payload::request::{PING, SET};
 use payload::tlv::string::TlvString;
-use payload::request::PING;
+use std::io::{self, Result, Read, Write};
+use std::net::TcpStream;
 
 pub fn handle_client(stream: TcpStream) -> io::Result<()> {
-    // let mut buf = [0; 1024];
     loop {
-
-        let mut command = TlvString::new("".to_string());
+        let mut command = TlvString::from_string("".to_string());
         command.read(&stream)?;
 
         match command.as_str() {
             PING => handle_ping(&stream),
-            _ => Ok({}), 
+            SET => handle_set(&stream),
+            _ => Ok({}),
         }?;
-
-        // let bytes_read = stream.read(&mut buf)?;
-        // if bytes_read == 0 {
-        //     return Ok(());
-        // }
-        // stream.write(&buf[0..bytes_read])?;
     }
 }
 
-fn handle_ping(mut stream: &TcpStream) -> io::Result<()> {
-    let mut pong = TlvString::new("".to_string());
-    pong.read(&mut stream)?;
+#[automock]
+pub trait HandlerReadWrite {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize>;
+    fn write(&mut self, buf: &[u8]) -> Result<usize>;
+}
 
-    let bytes = pong.as_bytes().unwrap();
-    stream.write_all(&bytes)?;
-    Ok(())
+impl HandlerReadWrite for TcpStream {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
+        Read::read(self, buf)
+    }
+
+    fn write(&mut self, buf: &[u8]) -> Result<usize> {
+        Write::write(self, buf)
+    }
 }

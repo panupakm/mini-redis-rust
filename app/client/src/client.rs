@@ -1,7 +1,8 @@
-use std::net::TcpStream;
-use std::io::{Result, Write, BufReader, BufRead};
 use payload::request::PING;
+use payload::tlv::response::TlvResponse;
 use payload::tlv::string::TlvString;
+use std::io::{Result, Write};
+use std::net::TcpStream;
 
 #[derive(Default)]
 pub struct Client {
@@ -14,32 +15,26 @@ impl Client {
     }
 
     pub fn connect(&mut self, address: &str, port: u16) -> Result<()> {
-        let stream = TcpStream::connect(format!("{}:{}", address, port))?;        
+        let stream = TcpStream::connect(format!("{}:{}", address, port))?;
         self.stream = Some(stream);
         return Ok(());
     }
 
     pub fn ping(&mut self, msg: &str) -> Result<String> {
-
         let pong = if let Some(ref mut stream) = self.stream {
-
-            let tlv_ping = TlvString::new(PING.to_string());
+            let tlv_ping = TlvString::from_string(PING.to_string());
             stream.write_all(&tlv_ping.as_bytes().unwrap())?;
-            
-            let tlv_msg = TlvString::new(msg.to_string());
+
+            let tlv_msg = TlvString::from_string(msg.to_string());
             stream.write_all(&tlv_msg.as_bytes().unwrap())?;
 
-            //let mut buffer: Vec<u8> = Vec::with_capacity(512);
-            // let mut reader = BufReader::new(self.stream.as_ref().unwrap());
-
-            let mut tlv_pong = TlvString::new("".to_string());
+            let mut tlv_pong = TlvResponse::default();
             tlv_pong.read(stream)?;
-
-            tlv_pong.as_str().to_string()
+            tlv_pong
         } else {
-            "".to_string()
+            TlvResponse::default()
         };
 
-        return Ok(pong.to_string());
+        return Ok(pong.get_message_as_string());
     }
 }
